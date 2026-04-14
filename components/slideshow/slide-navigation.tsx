@@ -14,6 +14,7 @@ type SlideNavigationProps = {
   total: number
   previousHref?: string
   nextHref?: string
+  mode?: "visible" | "counter"
 }
 
 export function SlideNavigation({
@@ -21,6 +22,7 @@ export function SlideNavigation({
   total,
   previousHref,
   nextHref,
+  mode = "visible",
 }: SlideNavigationProps) {
   const router = useRouter()
   const stepper = useSlideStepper()
@@ -49,24 +51,34 @@ export function SlideNavigation({
 
   const hasPrevious = Boolean(previousHref || stepper?.canRetreat)
   const hasNext = Boolean(nextHref || stepper?.canAdvance)
+  const isCounterOnly = mode === "counter"
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/75 backdrop-blur-xl">
-      <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handlePrevious}
-          disabled={!hasPrevious}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            !hasPrevious && "pointer-events-none opacity-50",
-          )}
-        >
-          <ArrowLeft />
-          Previous
-        </Button>
+      <div
+        className={cn(
+          "px-4 py-3 sm:px-6",
+          isCounterOnly
+            ? "flex items-center justify-center"
+            : "flex items-center justify-between gap-3",
+        )}
+      >
+        {isCounterOnly ? null : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handlePrevious}
+            disabled={!hasPrevious}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              !hasPrevious && "pointer-events-none opacity-50",
+            )}
+          >
+            <ArrowLeft />
+            Previous
+          </Button>
+        )}
 
         <div className="min-w-0 text-center">
           <p className="text-xs font-medium tabular-nums uppercase tracking-[0.2em] text-muted-foreground">
@@ -74,20 +86,22 @@ export function SlideNavigation({
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="default"
-          size="sm"
-          onClick={handleNext}
-          disabled={!hasNext}
-          className={cn(
-            buttonVariants({ variant: "default", size: "sm" }),
-            !hasNext && "pointer-events-none opacity-50",
-          )}
-        >
-          Next
-          <ArrowRight />
-        </Button>
+        {isCounterOnly ? null : (
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={handleNext}
+            disabled={!hasNext}
+            className={cn(
+              buttonVariants({ variant: "default", size: "sm" }),
+              !hasNext && "pointer-events-none opacity-50",
+            )}
+          >
+            Next
+            <ArrowRight />
+          </Button>
+        )}
       </div>
     </div>
   )

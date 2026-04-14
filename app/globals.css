@@ -181,11 +181,6 @@
     animation-duration: 1200ms;
   }
 
-  .reveal-card {
-    opacity: 0;
-    animation: scale-fade-in 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
   .reveal-delay-1 {
     animation-delay: 60ms;
   }
@@ -227,7 +222,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .reveal-item,
-  .reveal-card,
   .reveal-body-stagger > * {
     opacity: 1;
     animation: none;

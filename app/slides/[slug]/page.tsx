@@ -1,8 +1,9 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { SlideShell } from "@/components/slideshow/slide-shell"
+import { slideshowConfig } from "@/app/slideshow-config"
 import { getSlideBySlug, slides } from "../../slides"
-import {Metadata} from "next"
 
 type SlidePageProps = {
   params: Promise<{
@@ -14,7 +15,9 @@ export function generateStaticParams() {
   return slides.map((slide) => ({ slug: slide.slug }))
 }
 
-export async function generateMetadata({ params }: SlidePageProps):Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: SlidePageProps): Promise<Metadata> {
   const { slug } = await params
   const slide = getSlideBySlug(slug)
 
@@ -22,8 +25,16 @@ export async function generateMetadata({ params }: SlidePageProps):Promise<Metad
     return {}
   }
 
+  if (slide.title === slideshowConfig.title) {
+    return {
+      title: {
+        absolute: slide.title,
+      },
+    }
+  }
+
   return {
-    title: `${slide.title}`,
+    title: slide.title,
   }
 }
 
@@ -40,7 +51,7 @@ export default async function SlidePage({ params }: SlidePageProps) {
   const nextSlide = slides[index + 1]
   const slideOptions = slides.map((item, itemIndex) => ({
     index: itemIndex + 1,
-    title: item.title,
+    title: item.navTitle ?? item.title,
     href: `/slides/${item.slug}`,
   }))
 
@@ -52,6 +63,12 @@ export default async function SlidePage({ params }: SlidePageProps) {
       previousHref={previousSlide ? `/slides/${previousSlide.slug}` : undefined}
       nextHref={nextSlide ? `/slides/${nextSlide.slug}` : undefined}
       slideOptions={slideOptions}
+      title={slideshowConfig.header.brand}
+      titleHref={slideshowConfig.header.href}
+      headerMode={slide.header ?? slideshowConfig.header.mode}
+      footerMode={slide.footer ?? slideshowConfig.footer.mode}
+      layout={slide.layout}
+      background={slide.background}
     >
       {slide.body}
     </SlideShell>
