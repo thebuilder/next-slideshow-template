@@ -49,11 +49,17 @@ export default async function SlidePage({ params }: SlidePageProps) {
   const index = slides.findIndex((item) => item.slug === slide.slug)
   const previousSlide = slides[index - 1]
   const nextSlide = slides[index + 1]
+  const nextNextSlide = slides[index + 2]
   const slideOptions = slides.map((item, itemIndex) => ({
     index: itemIndex + 1,
     title: item.navTitle ?? item.title,
     href: `/slides/${item.slug}`,
   }))
+  const prefetchHrefs = [
+    previousSlide ? `/slides/${previousSlide.slug}` : undefined,
+    nextSlide ? `/slides/${nextSlide.slug}` : undefined,
+    nextNextSlide ? `/slides/${nextNextSlide.slug}` : undefined,
+  ].filter((href): href is string => Boolean(href))
 
   return (
     <SlideShell
@@ -62,6 +68,7 @@ export default async function SlidePage({ params }: SlidePageProps) {
       stepCount={slide.stepCount}
       previousHref={previousSlide ? `/slides/${previousSlide.slug}` : undefined}
       nextHref={nextSlide ? `/slides/${nextSlide.slug}` : undefined}
+      prefetchHrefs={prefetchHrefs}
       slideOptions={slideOptions}
       title={slideshowConfig.header.brand}
       titleHref={slideshowConfig.header.href}

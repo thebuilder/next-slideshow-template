@@ -15,6 +15,7 @@ type SlideNavigationProps = {
   previousHref?: string
   nextHref?: string
   mode?: "visible" | "counter"
+  prefetchHrefs?: string[]
 }
 
 export function SlideNavigation({
@@ -23,6 +24,7 @@ export function SlideNavigation({
   previousHref,
   nextHref,
   mode = "visible",
+  prefetchHrefs = [],
 }: SlideNavigationProps) {
   const router = useRouter()
   const stepper = useSlideStepper()
@@ -52,6 +54,13 @@ export function SlideNavigation({
   const hasPrevious = Boolean(previousHref || stepper?.canRetreat)
   const hasNext = Boolean(nextHref || stepper?.canAdvance)
   const isCounterOnly = mode === "counter"
+
+  React.useEffect(() => {
+    const uniqueHrefs = [...new Set(prefetchHrefs.filter(Boolean))]
+    uniqueHrefs.forEach((href) => {
+      router.prefetch(href)
+    })
+  }, [prefetchHrefs, router])
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/75 backdrop-blur-xl">

@@ -23,6 +23,7 @@ type SlideShellProps = {
   stepCount?: number
   previousHref?: string
   nextHref?: string
+  prefetchHrefs?: string[]
   title: string
   titleHref?: string
   headerMode?: SlideHeaderMode
@@ -43,6 +44,7 @@ export function SlideShell({
   stepCount = 0,
   previousHref,
   nextHref,
+  prefetchHrefs = [],
   title,
   titleHref = "/",
   headerMode = "auto",
@@ -104,6 +106,7 @@ export function SlideShell({
             previousHref={previousHref}
             nextHref={nextHref}
             mode={footerMode === "counter" ? "counter" : "visible"}
+            prefetchHrefs={prefetchHrefs}
           />
         ) : null}
       </div>
