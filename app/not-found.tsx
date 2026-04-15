@@ -10,6 +10,7 @@ export default function SlidesNotFoundPage() {
       total={1}
       stepCount={0}
       slideOptions={[]}
+      currentSlug="not-found"
       title={slideshowConfig.header.brand}
       titleHref={slideshowConfig.header.href}
       headerMode={slideshowConfig.header.mode}

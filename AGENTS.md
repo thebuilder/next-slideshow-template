@@ -25,6 +25,7 @@ Keep the project optimized for fast authoring of new slide decks with consistent
 - Prefer composing slides from `app/slides/blocks/*` primitives.
 - Prefer explicit variant components over mode flags/booleans (composition pattern):
   - good: `ContentSlideCard` + `OpenContentSlide`
+  - good: `FullscreenMediaSlide` with `media.kind: "image" | "video"`
   - avoid: single component with `variant`/`animate*` branching props
 - Use slide-level metadata (`layout`, `header`, `footer`, `background`, `stepCount`) instead of route-specific hacks.
 - Use reusable media primitives (for example `ImageShowcaseSlide`) for media-first slides and keep assets in `public/images`.

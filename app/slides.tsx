@@ -11,15 +11,21 @@ import {
   HeroSlide,
   OpenContentSlide,
 } from "@/app/slides/blocks/templates"
-import { ImageShowcaseSlide } from "@/app/slides/blocks/media"
+import {
+  FullscreenMediaSlide,
+  ImageShowcaseSlide,
+} from "@/app/slides/blocks/media"
 import { Eyebrow } from "@/app/slides/blocks/typography"
 import { SlideStep } from "@/components/slideshow/slide-stepper"
-import templateCapabilitiesImage from "@/public/images/template-capabilities.svg"
+import exampleBackgroundImage from "@/assets/example-background.png"
+import templateCapabilitiesImage from "@/assets/template-capabilities.svg"
 
 export const slides: SlideDefinition[] = [
   {
     slug: "intro",
     title: "Slideshow Base",
+    notes:
+      "Welcome the audience, set context in one sentence, and preview what they will get from this walkthrough.",
     body: (
       <HeroSlide
         eyebrow="Reusable Next.js template"
@@ -108,6 +114,8 @@ export const slides: SlideDefinition[] = [
   {
     slug: "step-reveals",
     title: "Step Reveals",
+    notes:
+      "Pause between each reveal and ask a short alignment question before advancing to the next step.",
     body: (
       <ContentSlideCard
         eyebrow="Stepped content"
@@ -205,18 +213,26 @@ export const slides: SlideDefinition[] = [
     slug: "fullscreen",
     title: "Fullscreen",
     body: (
-      <section className="flex min-h-[calc(100svh-5.5rem)] items-center justify-center">
-        <div className="mx-auto max-w-5xl text-center">
-          <Eyebrow>Fullscreen mode</Eyebrow>
-          <h1 className="mt-5 text-5xl font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl">
-            Use the entire canvas for impact slides
-          </h1>
-          <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-            Fullscreen slides can hide header chrome and pair with custom
-            backgrounds for transitions or key announcements.
-          </p>
-        </div>
-      </section>
+      <FullscreenMediaSlide
+        variant="background"
+        overlay="strong"
+        media={{
+          kind: "image",
+          src: exampleBackgroundImage,
+          alt: "Example scenic background",
+          placeholder: "blur",
+          priority: true,
+        }}
+      >
+        <Eyebrow>Fullscreen mode</Eyebrow>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-balance text-white sm:text-5xl lg:text-6xl">
+          Image and video can take over the full canvas
+        </h1>
+        <p className="mt-3 max-w-3xl text-base leading-7 text-white/85 sm:text-lg">
+          Use fullscreen media for transitions, product trailers, launch
+          moments, or immersive visual slides.
+        </p>
+      </FullscreenMediaSlide>
     ),
     layout: "fullscreen",
     header: "hidden",
@@ -225,6 +241,18 @@ export const slides: SlideDefinition[] = [
   {
     slug: "authoring",
     title: "Authoring Example",
+    notes: `Start this section by anchoring on the authoring contract: slides.tsx should remain definitions-only and all implementation detail should live in reusable blocks.
+
+Call out that this keeps deck iteration fast because we can rearrange narrative flow without touching component logic.
+
+Mention the practical editing flow:
+1) add metadata (title, layout, background, stepCount),
+2) compose with existing blocks,
+3) only create new primitives when a pattern repeats.
+
+Pause briefly on the code snippet and explicitly point to the commented fullscreen media example.
+
+Close by reinforcing that this pattern is what makes the template scalable for future decks with different visual styles but identical navigation and presenter tooling.`,
     body: (
       <ContentSlideCard
         eyebrow="Authoring"
@@ -240,6 +268,12 @@ export const slides: SlideDefinition[] = [
       image={{ src: myImage, alt: "Capability map", placeholder: "blur" }}
     />
   ),
+  // Fullscreen video with autoplay:
+  // body: (
+  //   <FullscreenMediaSlide
+  //     media={{ kind: "video", src: "/videos/demo.mp4", autoplay: true }}
+  //   />
+  // ),
   layout: "fullscreen",
   background: "none",
   header: "hidden"

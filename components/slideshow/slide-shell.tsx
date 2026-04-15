@@ -4,9 +4,14 @@ import { SlideBackground } from "@/components/slideshow/slide-background"
 import { SlideCommandCenter } from "@/components/slideshow/slide-command-center"
 import { SlideNavigation } from "@/components/slideshow/slide-navigation"
 import {
+  PresenterPopoutButton,
+  PresenterSync,
+} from "@/components/slideshow/presenter-controls"
+import {
   SlideStepAdvanceArea,
   SlideStepper,
 } from "@/components/slideshow/slide-stepper"
+import { StaticMediaBoundary } from "@/components/slideshow/static-media-boundary"
 import { SlideshowThemeToggle } from "@/components/slideshow/theme-toggle"
 import type {
   SlideBackgroundMode,
@@ -35,6 +40,16 @@ type SlideShellProps = {
     title: string
     href: string
   }>
+  notes?: string
+  currentSlug: string
+  nextSlide?: {
+    slug: string
+    title: string
+  }
+  readOnly?: boolean
+  initialStep?: number
+  presenterEnabled?: boolean
+  freezeMedia?: boolean
 }
 
 export function SlideShell({
@@ -52,6 +67,13 @@ export function SlideShell({
   layout = "default",
   background = "default",
   slideOptions,
+  notes,
+  currentSlug,
+  nextSlide,
+  readOnly = false,
+  initialStep = 0,
+  presenterEnabled = true,
+  freezeMedia = false,
 }: SlideShellProps) {
   const isFullscreen = layout === "fullscreen"
   const showHeader =
@@ -61,10 +83,23 @@ export function SlideShell({
   return (
     <SlideStepper
       stepCount={stepCount}
+      initialStep={initialStep}
+      readOnly={readOnly}
       previousHref={previousHref}
       nextHref={nextHref}
     >
       <div className="relative min-h-svh overflow-hidden bg-background text-foreground">
+        <PresenterSync
+          enabled={presenterEnabled && !readOnly}
+          current={current}
+          total={total}
+          slideTitles={slideOptions.map((slide) => slide.title)}
+          currentSlug={currentSlug}
+          currentTitle={slideOptions[current - 1]?.title ?? title}
+          stepCount={stepCount}
+          notes={notes}
+          nextSlide={nextSlide}
+        />
         <SlideBackground variant={background} />
 
         {showHeader ? (
@@ -78,6 +113,7 @@ export function SlideShell({
                   current={current}
                   slideOptions={slideOptions}
                 />
+                <PresenterPopoutButton />
                 <SlideshowThemeToggle />
               </div>
             </div>
@@ -86,16 +122,24 @@ export function SlideShell({
 
         <main
           className={cn(
-            "relative z-10 flex min-h-svh w-full items-start",
+            "relative z-10 flex w-full",
             isFullscreen
-              ? "px-4 pt-8 sm:px-6 sm:pt-10"
-              : "mx-auto max-w-6xl px-4 pt-28 sm:px-6 sm:pt-32",
-            showHeader ? "" : "pt-8 sm:pt-10",
-            showFooter ? "pb-24 sm:pb-28" : "pb-8 sm:pb-10",
+              ? "h-svh box-border items-stretch p-0"
+              : "mx-auto min-h-svh max-w-6xl items-start px-4 sm:px-6",
+            isFullscreen && showHeader && "pt-20 sm:pt-24",
+            isFullscreen && showFooter && "pb-16 sm:pb-20",
+            !isFullscreen &&
+              (showHeader ? "pt-28 sm:pt-32" : "pt-8 sm:pt-10"),
+            !isFullscreen && (showFooter ? "pb-24 sm:pb-28" : "pb-4 sm:pb-6"),
           )}
         >
-          <SlideStepAdvanceArea className="w-full">
-            <div className="w-full">{children}</div>
+          <SlideStepAdvanceArea className={cn("w-full", isFullscreen && "h-full")}>
+            <StaticMediaBoundary
+              enabled={freezeMedia}
+              className={cn(isFullscreen && "h-full")}
+            >
+              <div className={cn("w-full", isFullscreen && "h-full")}>{children}</div>
+            </StaticMediaBoundary>
           </SlideStepAdvanceArea>
         </main>
 

@@ -62,7 +62,7 @@ export function SlideCommandCenter({ current, slideOptions }: SlideCommandCenter
         type="button"
         variant="outline"
         size="icon-sm"
-        className="border-border/70 bg-background/80 text-muted-foreground backdrop-blur-sm hover:text-foreground"
+        className="border-border/70 bg-background/80 text-muted-foreground backdrop-blur-sm hover:bg-accent/70 hover:text-foreground"
         onClick={() => setIsOpen(true)}
         aria-label="Open slide command center"
         title="Open slide command center"

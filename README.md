@@ -2,15 +2,33 @@
 
 Reusable slideshow template built with Next.js, React, Tailwind, and shadcn/ui.
 
+## Screenshots
+
+### Landing page
+
+![Landing page](assets/landingpage.png)
+
+### Presenter view
+
+![Presenter view](assets/presenter-view.png)
+
 ## What this template includes
 
 - Route-per-slide presentation flow (`/slides/[slug]`)
 - Keyboard navigation (`Arrow`, `PageUp/PageDown`, `Space`)
 - Step reveals with `stepCount` + `SlideStep`
+- Click-to-advance reveal area for stepped slides
 - Command center (`Cmd/Ctrl + K`) for quick jump
+- Presenter popout window with `BroadcastChannel` sync
+- Presenter notes per slide via `notes` in `app/slides.tsx`
+- Presenter timer + 24h current-time clock
+- Presenter next-step preview (aware of reveal steps)
+- Presenter flow window (previous 2 + current + next 5 slide titles)
+- Presenter notes font-size controls
 - Light/dark theme toggle
 - Slide-level layout/background/header controls
 - Typed image slide support
+- PDF export pipeline for static handout rendering
 
 ## Quick start
 
@@ -35,7 +53,7 @@ Open [http://localhost:3000](http://localhost:3000).
 `SlideDefinition` supports:
 
 - Core: `slug`, `title`, `body`
-- Optional flow: `stepCount`, `navTitle`
+- Optional flow: `stepCount`, `navTitle`, `notes`
 - Optional chrome/layout: `header`, `footer`, `layout`, `background`
 
 ### Header behavior
@@ -71,6 +89,17 @@ Example content slide:
 }
 ```
 
+Presenter notes example:
+
+```tsx
+{
+  slug: "my-slide",
+  title: "My Slide",
+  notes: "Speaker-only context and reminders shown in /presenter.",
+  body: <MySlideComponent />,
+}
+```
+
 Example image slide:
 
 ```tsx
@@ -86,6 +115,29 @@ Example image slide:
   header: "hidden",
 }
 ```
+
+Example fullscreen video slide with autoplay:
+
+```tsx
+{
+  slug: "launch-video",
+  title: "Launch Video",
+  body: (
+    <FullscreenMediaSlide
+      media={{ kind: "video", src: "/videos/launch.mp4", autoplay: true }}
+    />
+  ),
+  layout: "fullscreen",
+  header: "hidden",
+  footer: "hidden",
+}
+```
+
+`FullscreenMediaSlide` options:
+
+- `variant: "framed" | "background"` (`background` is edge-to-edge)
+- `overlay: "none" | "subtle" | "medium" | "strong"` for text readability over media
+- `media.fit: "cover" | "contain"` (defaults to `"cover"`)
 
 ## Background variants
 

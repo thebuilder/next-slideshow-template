@@ -9,6 +9,10 @@ type SlidePageProps = {
   params: Promise<{
     slug: string
   }>
+  searchParams: Promise<{
+    presenterPreview?: string
+    step?: string
+  }>
 }
 
 export function generateStaticParams() {
@@ -38,14 +42,32 @@ export async function generateMetadata({
   }
 }
 
-export default async function SlidePage({ params }: SlidePageProps) {
+function parseStep(value: string | undefined) {
+  if (!value) {
+    return 0
+  }
+
+  const parsed = Number.parseInt(value, 10)
+
+  if (Number.isNaN(parsed) || parsed < 0) {
+    return 0
+  }
+
+  return parsed
+}
+
+export default async function SlidePage({ params, searchParams }: SlidePageProps) {
   const isPdfExport = process.env.NEXT_PUBLIC_PDF_EXPORT === "1"
   const { slug } = await params
+  const resolvedSearchParams = await searchParams
   const slide = getSlideBySlug(slug)
 
   if (!slide) {
     notFound()
   }
+
+  const isPresenterPreview = resolvedSearchParams.presenterPreview === "1"
+  const previewStep = parseStep(resolvedSearchParams.step)
 
   const index = slides.findIndex((item) => item.slug === slide.slug)
   const previousSlide = slides[index - 1]
@@ -61,6 +83,8 @@ export default async function SlidePage({ params }: SlidePageProps) {
     nextSlide ? `/slides/${nextSlide.slug}` : undefined,
     nextNextSlide ? `/slides/${nextNextSlide.slug}` : undefined,
   ].filter((href): href is string => Boolean(href))
+  const maxStepIndex = Math.max((slide.stepCount ?? 0) - 1, 0)
+  const previewStepClamped = Math.min(previewStep, maxStepIndex)
 
   return (
     <SlideShell
@@ -73,10 +97,32 @@ export default async function SlidePage({ params }: SlidePageProps) {
       slideOptions={slideOptions}
       title={slideshowConfig.header.brand}
       titleHref={slideshowConfig.header.href}
-      headerMode={isPdfExport ? "hidden" : (slide.header ?? slideshowConfig.header.mode)}
-      footerMode={isPdfExport ? "hidden" : (slide.footer ?? slideshowConfig.footer.mode)}
+      headerMode={
+        isPdfExport || isPresenterPreview
+          ? "hidden"
+          : (slide.header ?? slideshowConfig.header.mode)
+      }
+      footerMode={
+        isPdfExport || isPresenterPreview
+          ? "hidden"
+          : (slide.footer ?? slideshowConfig.footer.mode)
+      }
       layout={slide.layout}
       background={slide.background}
+      notes={slide.notes}
+      currentSlug={slide.slug}
+      nextSlide={
+        nextSlide
+          ? {
+              slug: nextSlide.slug,
+              title: nextSlide.navTitle ?? nextSlide.title,
+            }
+          : undefined
+      }
+      readOnly={isPresenterPreview}
+      initialStep={previewStepClamped}
+      presenterEnabled={!isPresenterPreview}
+      freezeMedia={isPresenterPreview}
     >
       {slide.body}
     </SlideShell>

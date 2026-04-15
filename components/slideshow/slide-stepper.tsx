@@ -10,6 +10,7 @@ type SlideStepContextValue = {
   stepCount: number
   canAdvance: boolean
   canRetreat: boolean
+  isReadOnly: boolean
   advance: () => void
   retreat: () => void
 }
@@ -35,32 +36,50 @@ export function useSlideStepper() {
 export function SlideStepper({
   children,
   stepCount = 0,
+  initialStep = 0,
+  readOnly = false,
   previousHref,
   nextHref,
 }: {
   children: React.ReactNode
   stepCount?: number
+  initialStep?: number
+  readOnly?: boolean
   previousHref?: string
   nextHref?: string
 }) {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = React.useState(0)
+  const clampedInitialStep = Math.max(0, Math.min(initialStep, stepCount - 1))
+  const [currentStep, setCurrentStep] = React.useState(clampedInitialStep)
 
   React.useEffect(() => {
+    if (readOnly) {
+      setCurrentStep(clampedInitialStep)
+      return
+    }
+
     setCurrentStep(0)
-  }, [stepCount, nextHref, previousHref])
+  }, [clampedInitialStep, readOnly, stepCount, nextHref, previousHref])
 
   const maxStepIndex = Math.max(stepCount - 1, 0)
-  const canAdvance = stepCount > 0 && currentStep < maxStepIndex
-  const canRetreat = stepCount > 0 && currentStep > 0
+  const canAdvance = !readOnly && stepCount > 0 && currentStep < maxStepIndex
+  const canRetreat = !readOnly && stepCount > 0 && currentStep > 0
 
   const advance = React.useCallback(() => {
+    if (readOnly) {
+      return
+    }
+
     setCurrentStep((value) => Math.min(value + 1, maxStepIndex))
-  }, [maxStepIndex])
+  }, [maxStepIndex, readOnly])
 
   const retreat = React.useCallback(() => {
+    if (readOnly) {
+      return
+    }
+
     setCurrentStep((value) => Math.max(value - 1, 0))
-  }, [])
+  }, [readOnly])
 
   const value = React.useMemo(
     () => ({
@@ -68,13 +87,18 @@ export function SlideStepper({
       stepCount,
       canAdvance,
       canRetreat,
+      isReadOnly: readOnly,
       advance,
       retreat,
     }),
-    [advance, canAdvance, canRetreat, currentStep, retreat, stepCount],
+    [advance, canAdvance, canRetreat, currentStep, readOnly, retreat, stepCount],
   )
 
   React.useEffect(() => {
+    if (readOnly) {
+      return
+    }
+
     function onKeyDown(event: KeyboardEvent) {
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
         return
@@ -115,7 +139,16 @@ export function SlideStepper({
 
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [advance, canAdvance, canRetreat, nextHref, previousHref, retreat, router])
+  }, [
+    advance,
+    canAdvance,
+    canRetreat,
+    nextHref,
+    previousHref,
+    readOnly,
+    retreat,
+    router,
+  ])
 
   return <SlideStepContext.Provider value={value}>{children}</SlideStepContext.Provider>
 }
