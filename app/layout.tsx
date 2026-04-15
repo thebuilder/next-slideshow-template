@@ -31,11 +31,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const isPdfExport = process.env.NEXT_PUBLIC_PDF_EXPORT === "1"
+  const isPdfDarkTheme = process.env.NEXT_PUBLIC_PDF_THEME === "dark"
+
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
+      data-pdf-export={isPdfExport ? "true" : undefined}
+      className={cn(
+        "antialiased",
+        fontMono.variable,
+        "font-sans",
+        geist.variable,
+        isPdfExport && isPdfDarkTheme && "dark",
+      )}
     >
       <body>
         <ThemeProvider>

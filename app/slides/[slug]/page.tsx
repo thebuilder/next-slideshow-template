@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 
 import { SlideShell } from "@/components/slideshow/slide-shell"
 import { slideshowConfig } from "@/app/slideshow-config"
-import { getSlideBySlug, slides } from "../../slides"
+import { getAllSlideSlugs, getSlideBySlug, slides } from "../../slides"
 
 type SlidePageProps = {
   params: Promise<{
@@ -12,7 +12,7 @@ type SlidePageProps = {
 }
 
 export function generateStaticParams() {
-  return slides.map((slide) => ({ slug: slide.slug }))
+  return getAllSlideSlugs().map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({
@@ -39,6 +39,7 @@ export async function generateMetadata({
 }
 
 export default async function SlidePage({ params }: SlidePageProps) {
+  const isPdfExport = process.env.NEXT_PUBLIC_PDF_EXPORT === "1"
   const { slug } = await params
   const slide = getSlideBySlug(slug)
 
@@ -72,8 +73,8 @@ export default async function SlidePage({ params }: SlidePageProps) {
       slideOptions={slideOptions}
       title={slideshowConfig.header.brand}
       titleHref={slideshowConfig.header.href}
-      headerMode={slide.header ?? slideshowConfig.header.mode}
-      footerMode={slide.footer ?? slideshowConfig.footer.mode}
+      headerMode={isPdfExport ? "hidden" : (slide.header ?? slideshowConfig.header.mode)}
+      footerMode={isPdfExport ? "hidden" : (slide.footer ?? slideshowConfig.footer.mode)}
       layout={slide.layout}
       background={slide.background}
     >

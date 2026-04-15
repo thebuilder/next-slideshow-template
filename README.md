@@ -97,3 +97,44 @@ Example image slide:
 - `"none"`
 
 Add custom variants in `components/slideshow/slide-background.tsx`.
+
+## PDF export
+
+Use Playwright + PDF-lib export:
+
+```bash
+pnpm exec playwright install chromium
+pnpm export:pdf
+```
+
+Dark export theme:
+
+```bash
+pnpm export:pdf -- --dark
+```
+
+This runs a production build in `NEXT_PUBLIC_PDF_EXPORT=1` mode and writes:
+
+- `out/slides.pdf`
+
+Slide routes are discovered from `app/sitemap.ts` (`/sitemap.xml`) so export
+stays aligned with your actual published slideshow paths.
+
+Export mode behavior:
+
+- fixed viewport (default `1920x1080`)
+- animations/transitions disabled
+- slideshow header/footer hidden
+
+Optional env vars:
+
+- `PDF_EXPORT_WIDTH` (default `1920`)
+- `PDF_EXPORT_HEIGHT` (default `1080`)
+- `PDF_EXPORT_PORT` (default `3410`)
+- `PDF_EXPORT_OUTPUT` (default `out/slides.pdf`)
+
+Skip build (reuse existing `.next` build):
+
+```bash
+pnpm export:pdf -- --skip-build
+```

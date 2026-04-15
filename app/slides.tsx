@@ -262,6 +262,10 @@ export const slides: SlideDefinition[] = [
   },
 ]
 
+export function getAllSlideSlugs() {
+  return slides.map((slide) => slide.slug)
+}
+
 export function getSlideBySlug(slug: string) {
   return slides.find((slide) => slide.slug === slug)
 }

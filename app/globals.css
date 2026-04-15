@@ -228,3 +228,11 @@
     transform: none;
   }
 }
+
+html[data-pdf-export="true"] *,
+html[data-pdf-export="true"] *::before,
+html[data-pdf-export="true"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
