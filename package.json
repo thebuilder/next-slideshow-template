@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "export:pdf": "node scripts/export-pdf.ts",
-    "lint": "eslint",
+    "lint": "biome check . --fix --error-on-warnings",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit"
   },
@@ -37,13 +37,11 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@biomejs/biome": "^2.4.12",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "eslint": "^9.39.4",
-    "eslint-config-next": "16.1.7",
     "pdf-lib": "^1.17.1",
     "playwright": "^1.55.1",
     "postcss": "^8",

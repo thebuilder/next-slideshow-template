@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url"
 
 import { PDFDocument } from "pdf-lib"
 import { chromium } from "playwright"
+import type { Browser } from "playwright"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -111,7 +112,7 @@ async function exportPdf({
   slugs: string[]
   baseUrl: string
 }): Promise<void> {
-  let browser
+  let browser: Browser
   try {
     browser = await chromium.launch({ headless: true })
   } catch (error) {
