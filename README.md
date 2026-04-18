@@ -153,7 +153,7 @@ Use that hook in custom client components to skip autoplay, audio, canvas, or
 other expensive interactive rendering inside the presenter preview iframe.
 
 The built-in video slide primitives already suppress autoplay in presenter
-preview, and image `alt` text now falls back to `""` when omitted.
+preview.
 
 ## Background variants
 
