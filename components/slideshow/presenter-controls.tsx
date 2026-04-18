@@ -15,7 +15,10 @@ type PresenterSyncProps = {
   enabled?: boolean
   current: number
   total: number
-  slideTitles: string[]
+  slides: Array<{
+    title: string
+    href: string
+  }>
   currentSlug: string
   currentTitle: string
   stepCount: number
@@ -29,7 +32,7 @@ type PresenterSyncProps = {
 function buildPresenterState({
   current,
   total,
-  slideTitles,
+  slides,
   currentSlug,
   currentTitle,
   stepCount,
@@ -59,7 +62,7 @@ function buildPresenterState({
     title: currentTitle,
     current,
     total,
-    slideTitles,
+    slides,
     stepCount,
     currentStep,
     notes,
@@ -132,15 +135,66 @@ export function PresenterSync(props: PresenterSyncProps) {
   return null
 }
 
+function openPresenterWindow() {
+  const presenterWindow = window.open(
+    "/presenter",
+    "slideshow-presenter",
+    "popup=yes,width=1420,height=920,left=80,top=60",
+  )
+
+  presenterWindow?.focus()
+}
+
+function isTypingTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false
+  }
+
+  return (
+    target.isContentEditable ||
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement
+  )
+}
+
+export function PresenterKeyboardShortcut({
+  enabled = true,
+}: {
+  enabled?: boolean
+}) {
+  React.useEffect(() => {
+    if (!enabled) {
+      return
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (
+        event.defaultPrevented ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        event.shiftKey ||
+        event.key.toLowerCase() !== "p" ||
+        isTypingTarget(event.target)
+      ) {
+        return
+      }
+
+      event.preventDefault()
+      openPresenterWindow()
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [enabled])
+
+  return null
+}
+
 export function PresenterPopoutButton() {
   function handleOpen() {
-    const presenterWindow = window.open(
-      "/presenter",
-      "slideshow-presenter",
-      "popup=yes,width=1420,height=920,left=80,top=60",
-    )
-
-    presenterWindow?.focus()
+    openPresenterWindow()
   }
 
   return (

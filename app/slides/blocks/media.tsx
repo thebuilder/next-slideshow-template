@@ -1,9 +1,11 @@
 import Image from "next/image"
 import type { ImageProps } from "next/image"
 
+import { SlideMediaVideo } from "@/components/slideshow/slide-media-video"
+
 export type ImageShowcaseConfig = {
   src: ImageProps["src"]
-  alt: string
+  alt?: string
   fit?: "cover" | "contain"
   placeholder?: ImageProps["placeholder"]
   blurDataURL?: string
@@ -16,7 +18,7 @@ export type ImageShowcaseConfig = {
 type FullscreenImageMedia = {
   kind: "image"
   src: ImageProps["src"]
-  alt: string
+  alt?: string
   fit?: "cover" | "contain"
   placeholder?: ImageProps["placeholder"]
   blurDataURL?: string
@@ -121,7 +123,7 @@ export function FullscreenMediaSlide({
       {media.kind === "image" ? (
         <Image
           src={media.src}
-          alt={media.alt}
+          alt={media.alt ?? ""}
           fill
           className={media.fit === "contain" ? "object-contain" : "object-cover"}
           placeholder={resolvedPlaceholder}
@@ -130,7 +132,7 @@ export function FullscreenMediaSlide({
           priority={media.priority}
         />
       ) : (
-        <video
+        <SlideMediaVideo
           src={media.src}
           poster={resolvePosterSrc(media.poster)}
           className={
@@ -138,11 +140,11 @@ export function FullscreenMediaSlide({
               ? "h-full w-full object-contain"
               : "h-full w-full object-cover"
           }
-          autoPlay={media.autoplay}
-          muted={media.autoplay ? (media.muted ?? true) : media.muted}
+          autoplay={media.autoplay}
+          muted={media.muted}
           playsInline
-          loop={media.autoplay ? (media.loop ?? true) : media.loop}
-          controls={media.controls ?? !media.autoplay}
+          loop={media.loop}
+          controls={media.controls}
         />
       )}
 
@@ -184,7 +186,7 @@ export function ImageShowcaseSlide({
       <div className="relative min-h-[20rem] overflow-hidden rounded-3xl border border-border/70 bg-card/60">
         <Image
           src={src}
-          alt={alt}
+          alt={alt ?? ""}
           fill
           className={fit === "contain" ? "object-contain" : "object-cover"}
           placeholder={resolvedPlaceholder}

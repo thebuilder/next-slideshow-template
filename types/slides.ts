@@ -10,7 +10,6 @@ export type SlideBackgroundMode = "default" | "none" | "spotlight" | "grid"
 type BaseSlideDefinition = {
   slug: string
   title: string
-  navTitle?: string
   notes?: string
   stepCount?: number
   header?: SlideHeaderMode

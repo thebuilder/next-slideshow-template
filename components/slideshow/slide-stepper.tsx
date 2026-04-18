@@ -3,6 +3,10 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 
+import {
+  PRESENTER_CHANNEL_NAME,
+  type PresenterChannelMessage,
+} from "@/types/presenter"
 import { cn } from "@/lib/utils"
 
 type SlideStepContextValue = {
@@ -104,6 +108,13 @@ export function SlideStepper({
         return
       }
 
+      if (
+        ["+", "=", "-", "_"].includes(event.key) ||
+        ["Equal", "Minus", "NumpadAdd", "NumpadSubtract"].includes(event.code)
+      ) {
+        return
+      }
+
       if (isInteractiveTarget(event.target)) {
         return
       }
@@ -139,6 +150,62 @@ export function SlideStepper({
 
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
+  }, [
+    advance,
+    canAdvance,
+    canRetreat,
+    nextHref,
+    previousHref,
+    readOnly,
+    retreat,
+    router,
+  ])
+
+  React.useEffect(() => {
+    if (readOnly || typeof BroadcastChannel === "undefined") {
+      return
+    }
+
+    const channel = new BroadcastChannel(PRESENTER_CHANNEL_NAME)
+
+    function handleMessage(event: MessageEvent<PresenterChannelMessage>) {
+      if (event.data?.type === "navigate-previous") {
+        if (canRetreat) {
+          retreat()
+          return
+        }
+
+        if (previousHref) {
+          router.push(previousHref)
+        }
+
+        return
+      }
+
+      if (event.data?.type === "navigate-next") {
+        if (canAdvance) {
+          advance()
+          return
+        }
+
+        if (nextHref) {
+          router.push(nextHref)
+        }
+
+        return
+      }
+
+      if (event.data?.type === "navigate-to-slide") {
+        router.push(event.data.href)
+      }
+    }
+
+    channel.addEventListener("message", handleMessage)
+
+    return () => {
+      channel.removeEventListener("message", handleMessage)
+      channel.close()
+    }
   }, [
     advance,
     canAdvance,

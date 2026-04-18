@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Minus, Plus } from "lucide-react"
+import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react"
 
 import {
   PRESENTER_CHANNEL_NAME,
@@ -37,19 +37,32 @@ function getFlowWindow(state: PresenterSlideState | null) {
 
   const currentIndex = state.current - 1
   const start = Math.max(0, currentIndex - 2)
-  const end = Math.min(state.slideTitles.length - 1, currentIndex + 5)
+  const end = Math.min(state.slides.length - 1, currentIndex + 5)
 
-  return state.slideTitles.slice(start, end + 1).map((title, offset) => {
+  return state.slides.slice(start, end + 1).map((slide, offset) => {
     const index = start + offset
     return {
       index,
-      title,
+      title: slide.title,
+      href: slide.href,
       isCurrent: index === currentIndex,
     }
   })
 }
 
-function PreviewFrame({ previewUrl }: { previewUrl: string | null }) {
+const previewCanvasWidth = 1920
+const previewCanvasHeight = 1080
+const previewAspectRatio = previewCanvasWidth / previewCanvasHeight
+
+function PreviewFrame({
+  previewUrl,
+  emptyLabel = "End of deck",
+  titlePrefix = "Preview",
+}: {
+  previewUrl: string | null
+  emptyLabel?: string
+  titlePrefix?: string
+}) {
   const [activeLayer, setActiveLayer] = React.useState<0 | 1>(0)
   const [layerUrls, setLayerUrls] = React.useState<[string | null, string | null]>([
     previewUrl,
@@ -98,34 +111,52 @@ function PreviewFrame({ previewUrl }: { previewUrl: string | null }) {
   if (!previewUrl) {
     return (
       <div className="grid h-full place-items-center text-sm text-muted-foreground">
-        End of deck
+        {emptyLabel}
       </div>
     )
   }
 
   return (
-    <div className="relative h-full w-full bg-card/40">
-      {[0, 1].map((layer) => {
-        const src = layerUrls[layer as 0 | 1]
+    <div
+      className="absolute inset-0 overflow-hidden bg-card/40"
+      style={{ containerType: "size" }}
+    >
+      <div
+        className="absolute left-1/2 top-1/2"
+        style={{
+          width: previewCanvasWidth,
+          height: previewCanvasHeight,
+          transform:
+            "translate(-50%, -50%) scale(min(calc(100cqw / 1920px), calc(100cqh / 1080px)))",
+          transformOrigin: "center center",
+        }}
+      >
+        {[0, 1].map((layer) => {
+          const src = layerUrls[layer as 0 | 1]
 
-        if (!src) {
-          return null
-        }
+          if (!src) {
+            return null
+          }
 
-        const isActive = activeLayer === layer
+          const isActive = activeLayer === layer
 
-        return (
-          <iframe
-            key={`${layer}-${src}`}
-            title={`Next step preview ${layer + 1}`}
-            src={src}
-            onLoad={() => handleLoad(layer as 0 | 1)}
-            className={`absolute inset-0 h-full w-full transition-opacity duration-150 ${
-              isActive ? "opacity-100" : "pointer-events-none opacity-0"
-            }`}
-          />
-        )
-      })}
+          return (
+            <iframe
+              key={`${layer}-${src}`}
+              title={`${titlePrefix} ${layer + 1}`}
+              src={src}
+              onLoad={() => handleLoad(layer as 0 | 1)}
+              className={`absolute inset-0 border-0 transition-opacity duration-150 ${
+                isActive ? "opacity-100" : "pointer-events-none opacity-0"
+              }`}
+              style={{
+                width: previewCanvasWidth,
+                height: previewCanvasHeight,
+              }}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -136,6 +167,7 @@ export function PresenterConsole() {
   const [clock, setClock] = React.useState(() => new Date())
   const [startedAt, setStartedAt] = React.useState<number | null>(null)
   const [notesFontSize, setNotesFontSize] = React.useState(1.5)
+  const channelRef = React.useRef<BroadcastChannel | null>(null)
 
   React.useEffect(() => {
     const timer = window.setInterval(() => {
@@ -151,6 +183,7 @@ export function PresenterConsole() {
     }
 
     const channel = new BroadcastChannel(PRESENTER_CHANNEL_NAME)
+    channelRef.current = channel
 
     function handleMessage(event: MessageEvent<PresenterChannelMessage>) {
       if (event.data?.type !== "slide-state") {
@@ -168,15 +201,34 @@ export function PresenterConsole() {
     return () => {
       channel.removeEventListener("message", handleMessage)
       channel.close()
+      channelRef.current = null
     }
   }, [])
 
   const elapsed = startedAt ? formatElapsed(Date.now() - startedAt) : "00:00:00"
-  const previewUrl = state?.preview
+  const currentSlideUrl = state
+    ? `/slides/${state.slug}?presenterPreview=1&step=${state.currentStep}`
+    : null
+  const nextStepPreviewUrl = state?.preview
     ? `/slides/${state.preview.slug}?presenterPreview=1&step=${state.preview.step}`
     : null
   const notesLineHeight = Number((notesFontSize * 1.45).toFixed(2))
   const flowItems = getFlowWindow(state)
+  const canNavigatePrevious = Boolean(
+    state && (state.current > 1 || state.currentStep > 0),
+  )
+  const canNavigateNext = Boolean(state?.preview)
+
+  function sendNavigationMessage(
+    message: Extract<
+      PresenterChannelMessage,
+      | { type: "navigate-previous" }
+      | { type: "navigate-next" }
+      | { type: "navigate-to-slide" }
+    >,
+  ) {
+    channelRef.current?.postMessage(message)
+  }
 
   return (
     <div className="grid h-svh grid-cols-1 overflow-hidden bg-background text-foreground lg:grid-cols-[22rem_1fr]">
@@ -202,17 +254,17 @@ export function PresenterConsole() {
 
         <div className="mt-5 rounded-xl border border-border/70 bg-card/60 p-4">
           <p className="text-[0.65rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
-            Current Slide
+            Next Step Preview
           </p>
-          <p className="mt-2 text-lg font-semibold">{state?.title ?? "Waiting for slideshow"}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {state ? `Slide ${state.current} of ${state.total}` : "Open a slide tab and start presenting"}
-          </p>
-          {state ? (
-            <p className="mt-1 text-sm text-muted-foreground">
-              Step {state.currentStep + 1} of {Math.max(state.stepCount, 1)}
-            </p>
-          ) : null}
+          <div
+            className="relative mt-3 w-full overflow-hidden rounded-xl border border-border/70 bg-card/40"
+            style={{ aspectRatio: previewAspectRatio }}
+          >
+            <PreviewFrame
+              previewUrl={nextStepPreviewUrl}
+              titlePrefix="Next step preview"
+            />
+          </div>
         </div>
 
         <div className="mt-4 rounded-xl border border-border/70 bg-card/60 p-3">
@@ -222,19 +274,26 @@ export function PresenterConsole() {
           <div className="mt-2 space-y-1">
             {flowItems.length ? (
               flowItems.map((item) => (
-                <div
+                <button
                   key={`${item.index}-${item.title}`}
-                  className={`flex items-center gap-2 rounded-md px-2 py-1 ${
+                  type="button"
+                  onClick={() =>
+                    sendNavigationMessage({
+                      type: "navigate-to-slide",
+                      href: item.href,
+                    })
+                  }
+                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left ${
                     item.isCurrent
                       ? "bg-primary/15 text-foreground"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                   }`}
                 >
                   <span className="min-w-7 text-xs font-medium tabular-nums">
                     {item.index + 1}
                   </span>
                   <span className="truncate text-sm">{item.title}</span>
-                </div>
+                </button>
               ))
             ) : (
               <p className="text-sm text-muted-foreground">
@@ -242,6 +301,28 @@ export function PresenterConsole() {
               </p>
             )}
           </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            className="gap-2"
+            onClick={() => sendNavigationMessage({ type: "navigate-previous" })}
+            disabled={!canNavigatePrevious}
+          >
+            <ChevronLeft className="size-4" />
+            Previous
+          </Button>
+          <Button
+            type="button"
+            className="gap-2"
+            onClick={() => sendNavigationMessage({ type: "navigate-next" })}
+            disabled={!canNavigateNext}
+          >
+            Next
+            <ChevronRight className="size-4" />
+          </Button>
         </div>
 
         <p className="mt-auto pt-4 text-xs text-muted-foreground">
@@ -252,17 +333,38 @@ export function PresenterConsole() {
       </aside>
 
       <section className="flex min-h-0 flex-col overflow-hidden p-5 sm:p-6">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold tracking-tight">Next Step Preview</h2>
-          <p className="text-xs text-muted-foreground">
-            {state?.preview
-              ? `${state.preview.title} · Step ${state.preview.step + 1}`
-              : "No upcoming preview"}
-          </p>
+        <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[0.65rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+              Current Slide
+            </p>
+            <h2 className="mt-1 text-lg font-semibold tracking-tight">
+              {state?.title ?? "Waiting for slideshow"}
+            </h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="rounded-full border border-border/70 bg-card/60 px-3 py-1 font-medium">
+              {state
+                ? `Slide ${state.current} of ${state.total}`
+                : "Open a slide tab and start presenting"}
+            </span>
+            {state ? (
+              <span className="rounded-full border border-border/70 bg-card/60 px-3 py-1 font-medium">
+                Step {state.currentStep + 1} of {Math.max(state.stepCount, 1)}
+              </span>
+            ) : null}
+          </div>
         </div>
 
-        <div className="h-[min(62vh,48rem)] overflow-hidden rounded-2xl border border-border/70 bg-card/40">
-          <PreviewFrame previewUrl={previewUrl} />
+        <div
+          className="relative w-full overflow-hidden rounded-2xl border border-border/70 bg-card/40"
+          style={{ aspectRatio: previewAspectRatio }}
+        >
+          <PreviewFrame
+            previewUrl={currentSlideUrl}
+            emptyLabel="Waiting for current slide preview"
+            titlePrefix="Current slide preview"
+          />
         </div>
 
         <div className="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/80">

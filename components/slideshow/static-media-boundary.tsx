@@ -1,10 +1,13 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
+
 type StaticMediaBoundaryProps = {
   children: React.ReactNode
   enabled?: boolean
   className?: string
+  activePath?: string
 }
 
 function freezeMedia(root: HTMLElement) {
@@ -28,11 +31,22 @@ export function StaticMediaBoundary({
   children,
   enabled = false,
   className,
+  activePath,
 }: StaticMediaBoundaryProps) {
   const rootRef = React.useRef<HTMLDivElement | null>(null)
+  const pathname = usePathname()
 
   React.useEffect(() => {
-    if (!enabled || !rootRef.current) {
+    if (!rootRef.current) {
+      return
+    }
+
+    if (activePath && pathname !== activePath) {
+      freezeMedia(rootRef.current)
+      return
+    }
+
+    if (!enabled) {
       return
     }
 
@@ -52,7 +66,20 @@ export function StaticMediaBoundary({
     })
 
     return () => observer.disconnect()
-  }, [enabled])
+  }, [activePath, enabled, pathname])
+
+  React.useEffect(() => {
+    function handleVisibilityChange() {
+      if (!document.hidden || !rootRef.current) {
+        return
+      }
+
+      freezeMedia(rootRef.current)
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
+  }, [])
 
   return (
     <div ref={rootRef} className={className}>

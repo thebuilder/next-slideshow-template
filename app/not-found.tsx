@@ -11,8 +11,9 @@ export default function SlidesNotFoundPage() {
       stepCount={0}
       slideOptions={[]}
       currentSlug="not-found"
-      title={slideshowConfig.header.brand}
-      titleHref={slideshowConfig.header.href}
+      deckTitle={slideshowConfig.header.brand}
+      deckTitleHref={slideshowConfig.header.href}
+      slideTitle="Page not found"
       headerMode={slideshowConfig.header.mode}
       footerMode="hidden"
       layout="default"

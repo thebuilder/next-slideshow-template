@@ -18,14 +18,20 @@ import {
 
 type SlideCommandCenterProps = {
   current: number
+  title: string
   slideOptions: Array<{
     index: number
     title: string
+    slug: string
     href: string
   }>
 }
 
-export function SlideCommandCenter({ current, slideOptions }: SlideCommandCenterProps) {
+export function SlideCommandCenter({
+  current,
+  title,
+  slideOptions,
+}: SlideCommandCenterProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = React.useState(false)
 
@@ -73,25 +79,28 @@ export function SlideCommandCenter({ current, slideOptions }: SlideCommandCenter
       <CommandDialog
         open={isOpen}
         onOpenChange={setIsOpen}
-        title="Slide Command Center"
+        title={title}
         description="Jump to any slide by number or title."
         className="sm:max-w-lg"
       >
         <Command>
-          <CommandInput placeholder="Go to slide..." />
+          <CommandInput placeholder="Go to slide by number, title, or slug..." />
           <CommandList>
             <CommandEmpty>No slides found.</CommandEmpty>
             <CommandGroup heading="Slides">
               {slideOptions.map((slide) => (
                 <CommandItem
                   key={slide.href}
-                  value={`${slide.index} ${slide.title}`}
+                  value={`${slide.index} ${slide.title} ${slide.slug}`}
                   onSelect={() => goToSlide(slide.href)}
                 >
                   <span className="inline-flex min-w-10 tabular-nums text-muted-foreground">
                     {String(slide.index).padStart(2, "0")}
                   </span>
                   <span className="truncate">{slide.title}</span>
+                  <span className="hidden truncate text-xs text-muted-foreground md:inline">
+                    {slide.slug}
+                  </span>
                   {slide.index === current ? (
                     <CommandShortcut>Current</CommandShortcut>
                   ) : null}

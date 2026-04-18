@@ -53,8 +53,12 @@ Open [http://localhost:3000](http://localhost:3000).
 `SlideDefinition` supports:
 
 - Core: `slug`, `title`, `body`
-- Optional flow: `stepCount`, `navTitle`, `notes`
+- Optional flow: `stepCount`, `notes`
 - Optional chrome/layout: `header`, `footer`, `layout`, `background`
+
+Slide primitives can read the current slide `title` from context, so template
+blocks only need an explicit `title` prop when you want to override the slide
+title text inside the layout.
 
 ### Header behavior
 
@@ -138,6 +142,18 @@ Example fullscreen video slide with autoplay:
 - `variant: "framed" | "background"` (`background` is edge-to-edge)
 - `overlay: "none" | "subtle" | "medium" | "strong"` for text readability over media
 - `media.fit: "cover" | "contain"` (defaults to `"cover"`)
+
+## Presenter preview context
+
+Presenter previews render slide routes with `?presenterPreview=1`, and slides
+can detect that mode with `useIsPresenterPreview()` from
+`components/slideshow/slide-context.tsx`.
+
+Use that hook in custom client components to skip autoplay, audio, canvas, or
+other expensive interactive rendering inside the presenter preview iframe.
+
+The built-in video slide primitives already suppress autoplay in presenter
+preview, and image `alt` text now falls back to `""` when omitted.
 
 ## Background variants
 

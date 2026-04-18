@@ -75,7 +75,8 @@ export default async function SlidePage({ params, searchParams }: SlidePageProps
   const nextNextSlide = slides[index + 2]
   const slideOptions = slides.map((item, itemIndex) => ({
     index: itemIndex + 1,
-    title: item.navTitle ?? item.title,
+    title: item.title,
+    slug: item.slug,
     href: `/slides/${item.slug}`,
   }))
   const prefetchHrefs = [
@@ -95,8 +96,9 @@ export default async function SlidePage({ params, searchParams }: SlidePageProps
       nextHref={nextSlide ? `/slides/${nextSlide.slug}` : undefined}
       prefetchHrefs={prefetchHrefs}
       slideOptions={slideOptions}
-      title={slideshowConfig.header.brand}
-      titleHref={slideshowConfig.header.href}
+      deckTitle={slideshowConfig.header.brand}
+      deckTitleHref={slideshowConfig.header.href}
+      slideTitle={slide.title}
       headerMode={
         isPdfExport || isPresenterPreview
           ? "hidden"
@@ -115,7 +117,7 @@ export default async function SlidePage({ params, searchParams }: SlidePageProps
         nextSlide
           ? {
               slug: nextSlide.slug,
-              title: nextSlide.navTitle ?? nextSlide.title,
+              title: nextSlide.title,
             }
           : undefined
       }

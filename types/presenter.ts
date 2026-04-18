@@ -6,12 +6,17 @@ export type PresenterPreviewState = {
   step: number
 }
 
+export type PresenterSlideListItem = {
+  title: string
+  href: string
+}
+
 export type PresenterSlideState = {
   slug: string
   title: string
   current: number
   total: number
-  slideTitles: string[]
+  slides: PresenterSlideListItem[]
   stepCount: number
   currentStep: number
   notes?: string
@@ -26,4 +31,14 @@ export type PresenterChannelMessage =
   | {
       type: "slide-state"
       payload: PresenterSlideState
+    }
+  | {
+      type: "navigate-previous"
+    }
+  | {
+      type: "navigate-next"
+    }
+  | {
+      type: "navigate-to-slide"
+      href: string
     }
